@@ -19,8 +19,10 @@ class DatabaseSeeder extends Seeder
         User::create([
             'first_name' => 'Vi',
             'last_name' => 'Os',
-            'phone' => '0123456789',
+            'phone' => '7384932483',
             'password' => 'test',
+            'document_number' => '0123456789',
+            'birth_date' => '1990-02-20'
         ]);
         Station::create([
             'city' => 'Иркутск',
@@ -32,10 +34,53 @@ class DatabaseSeeder extends Seeder
             'name' => 'Братск',
             'code' => '3952',
         ]);
-        // Trip::create([
-        //     'id' => 1,
-        //     'code' => 'FP 2100',
-        //     'from'
-        // ])
+        Trip::create([
+            'id' => 2,
+            'code' => 'FP 1200',
+            'from' => '395',
+            'to' => '3952',
+            'from_date' => '2021-10-01',
+            'from_time' => '12:00',
+            'to_date' => '2021-10-01',
+            'to_time' => '13:35',
+            'cost' => 9500,
+            'availability' => 156
+        ]);
+        Trip::create([
+            'id' => 14,
+            'code' => 'FP 1201',
+            'from' => '395',
+            'to' => '3952',
+            'from_date' => '2021-10-01',
+            'from_time' => '08:35',
+            'to_date' => '2021-10-01',
+            'to_time' => '10:05',
+            'cost' => 10500,
+            'availability' => 156
+        ]);
+        Trip::create([
+            'id' => 1,
+            'code' => 'FP 2100',
+            'from' => '3952',
+            'to' => '395',
+            'from_date' => '2021-10-10',
+            'from_time' => '08:35',
+            'to_date' => '2021-10-10',
+            'to_time' => '10:05',
+            'cost' => 10500,
+            'availability' => 156
+        ]);
+        Trip::create([
+            'id' => 13,
+            'code' => 'FP 2101',
+            'from' => '3952',
+            'to' => '395',
+            'from_date' => '2021-10-10',
+            'from_time' => '12:00',
+            'to_date' => '2021-10-10',
+            'to_time' => '13:35',
+            'cost' => 12500,
+            'availability' => 156
+        ]);
     }
 }

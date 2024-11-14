@@ -37,9 +37,16 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(Request $request)
     {
-        //
+        $user = $request->user();
+
+        return [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'phone' => $user->phone,
+            'document_number' => $user->document_number,
+        ];
     }
 
     /**

@@ -3,6 +3,14 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+
+enum PlaceType: string
+{
+    case from = 'from';
+    case back = 'back';
+}
 
 class UpdateBookingRequest extends FormRequest
 {
@@ -11,7 +19,7 @@ class UpdateBookingRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +30,9 @@ class UpdateBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'passenger' => ['required', 'integer', Rule::exists('users', 'id')],
+            'seat' => ['required', 'string'],
+            'type' => ['required', Rule::enum(PlaceType::class)],
         ];
     }
 }

@@ -17,9 +17,66 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $bookings = $request->user()->bookings;
+
+        return [
+            'data' => [
+                'items' => $bookings->map(fn ($booking) => [
+                    'code' => $booking->code,
+                    'cost' => ($booking->from->cost + $booking->back->cost) * $booking->passengers->count(),
+                    'trips' => [[
+                        'trip_id' => $booking->from->id,
+                        'trip_code' => $booking->from->code,
+                        'from' => [
+                            'city' => $booking->from->from_station->city,
+                            'station' => $booking->from->from_station->name,
+                            'code' => $booking->from->from_station->code,
+                            'date' => $booking->from->from_date,
+                            'time' => $booking->from->from_time,
+                        ],
+                        'to' => [
+                            'city' => $booking->from->to_station->city,
+                            'station' => $booking->from->to_station->name,
+                            'code' => $booking->from->to_station->code,
+                            'date' => $booking->from->to_date,
+                            'time' => $booking->from->to_time,
+                        ],
+                        'cost' => $booking->from->cost,
+                        'availability' => $booking->from->availability,
+                    ], [
+                        'trip_id' => $booking->back->id,
+                        'trip_code' => $booking->back->code,
+                        'from' => [
+                            'city' => $booking->back->from_station->city,
+                            'station' => $booking->back->from_station->name,
+                            'code' => $booking->back->from_station->code,
+                            'date' => $booking->back->from_date,
+                            'time' => $booking->back->from_time,
+                        ],
+                        'to' => [
+                            'city' => $booking->back->to_station->city,
+                            'station' => $booking->back->to_station->name,
+                            'code' => $booking->back->to_station->code,
+                            'date' => $booking->back->to_date,
+                            'time' => $booking->back->to_time,
+                        ],
+                        'cost' => $booking->back->cost,
+                        'availability' => $booking->back->availability,
+                    ]],
+                    'passengers' => $booking->passengers->map(fn($passenger) => [
+                        'id' => $passenger->id,
+                        'first_name' => $passenger->first_name,
+                        'last_name' => $passenger->last_name,
+                        'birth_date' => $passenger->birth_date,
+                        'document_number' => $passenger->document_number,
+                        'place_from' => $passenger->pivot->place_from,
+                        'place_back' => $passenger->pivot->place_back,
+                    ])
+                ])
+            ]
+        ];
     }
 
     /**
@@ -65,8 +122,8 @@ class BookingController extends Controller
     {
         $booking = Booking::with(['passengers'])->where('code', $code)->firstOrFail();
 
-        $trip_from = Trip::find($booking['trip_from']);
-        $trip_back = Trip::find($booking['trip_back']);
+        $trip_from = $booking->from;
+        $trip_back = $booking->back;
 
         return [
             'data' => [
@@ -127,9 +184,49 @@ class BookingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateBookingRequest $request, Booking $booking)
+    public function update(UpdateBookingRequest $request, string $code)
     {
-        //
+        $data = $request->validated();
+        $booking = Booking::with(['passengers'])->where('code', $code)->firstOrFail();
+        $place_type = 'place_'.$data['type'];
+
+        $user = $booking->passengers()->find($data['passenger']);
+        if (!isset($user)) {
+            return response([
+                'error' => [
+                    'code' => 403,
+                    'message' => 'Forbidden',
+                ]
+            ]);
+        }
+        $seat = $booking->passengers()
+        ->where($place_type, $data['seat'])
+        ->first();
+        if (isset($seat)) {
+            return response([
+                'error' => [
+                    'code' => 422,
+                    'message' => 'Место занято'
+                ]
+            ]);
+        }
+
+        $booking->passengers()->updateExistingPivot($data['passenger'], [
+            $place_type => $data['seat']
+        ]);
+
+        $user = $booking->passengers()->find($data['passenger']);
+        
+
+        return [
+            'id' => $user->id,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'birth_date' => $user->birth_date,
+            'document_number' => $user->document_number,
+            'place_from' => $user->pivot->place_from,
+            'place_back' => $user->pivot->place_back,
+        ];
     }
 
     /**
